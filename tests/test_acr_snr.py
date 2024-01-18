@@ -9,6 +9,7 @@ from hazenlib.ACRObject import ACRObject
 from tests import TEST_DATA_DIR, TEST_REPORT_DIR
 
 
+
 class TestACRSNRGE(unittest.TestCase):
     norm_factor = 57.12810400630368
     snr = 40.19

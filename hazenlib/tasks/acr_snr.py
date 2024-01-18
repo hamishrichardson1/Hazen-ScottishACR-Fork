@@ -34,7 +34,7 @@ class ACRSNR(HazenTask):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.ACR_obj = ACRObject(self.dcm_list,kwargs["MediumACRPhantom"])
+        self.ACR_obj = ACRObject(self.dcm_list,kwargs)
         # measured slice width is expected to be a floating point number
         try:
             self.measured_slice_width = float(kwargs["measured_slice_width"])
@@ -281,7 +281,7 @@ class ACRSNR(HazenTask):
 
         if self.report:
             import matplotlib.pyplot as plt
-
+            
             fig, axes = plt.subplots(2, 1)
             fig.set_size_inches(8, 16)
             fig.tight_layout(pad=4)
@@ -289,6 +289,9 @@ class ACRSNR(HazenTask):
             axes[0].imshow(dcm.pixel_array)
             axes[0].scatter(centre[0], centre[1], c="red")
             axes[0].set_title("Centroid Location")
+            circle1 = plt.Circle((centre[0], centre[1]), self.ACR_obj.radius, color='r',fill=False)
+            axes[0].add_patch(circle1)
+
 
             axes[1].set_title("Smoothed Noise Image")
             axes[1].imshow(noise_img, cmap="gray")

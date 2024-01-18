@@ -5,7 +5,13 @@ import numpy as np
 
 
 class ACRObject:
-    def __init__(self, dcm_list,MediumACRPhantom):
+    def __init__(self, dcm_list,kwargs):
+        #Added in a medium ACR phantom flag, not sure if this is the best way of doing this but will leave it for now..
+        if "MediumACRPhantom" in kwargs.keys():
+            self.MediumACRPhantom = kwargs["MediumACRPhantom"]
+        else:
+            self.MediumACRPhantom = False
+
         # Initialise an ACR object from a stack of images of the ACR phantom
         self.dcm_list = dcm_list
         # Load files as DICOM and their pixel arrays into 'images'
@@ -22,7 +28,7 @@ class ACRObject:
         self.centre, self.radius = self.find_phantom_center()
         # Store a mask image of slice 7 for reusability
         self.mask_image = self.get_mask_image(self.images[6])
-        self.MediumACRPhantom = MediumACRPhantom
+        
 
     def sort_images(self):
         """
@@ -161,16 +167,29 @@ class ACRObject:
         img_blur = cv2.GaussianBlur(img, (1, 1), 0)
         img_grad = cv2.Sobel(img_blur, 0, dx=1, dy=1)
 
-        detected_circles = cv2.HoughCircles(
-            img_grad,
-            cv2.HOUGH_GRADIENT,
-            1,
-            param1=50,
-            param2=30,
-            minDist=int(180 / dy),
-            minRadius=int(180 / (2 * dy)),
-            maxRadius=int(200 / (2 * dx)),
-        ).flatten()
+
+        if (self.MediumACRPhantom==False):
+            detected_circles = cv2.HoughCircles(
+                img_grad,
+                cv2.HOUGH_GRADIENT,
+                1,
+                param1=50,
+                param2=30,
+                minDist=int(180 / dy),
+                minRadius=int(180 / (2 * dy)),
+                maxRadius=int(200 / (2 * dx)),
+            ).flatten()
+        else:
+            detected_circles = cv2.HoughCircles(
+                img_grad,
+                cv2.HOUGH_GRADIENT,
+                1,
+                param1=50,
+                param2=30,
+                minDist=int(180 / dy),
+                minRadius=int(155 / (2 * dy)),
+                maxRadius=int(180 / (2 * dx)),
+            ).flatten()
         centre = [int(i) for i in detected_circles[:2]]
         radius = int(detected_circles[2])
         return centre, radius

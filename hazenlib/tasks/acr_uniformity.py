@@ -34,7 +34,7 @@ class ACRUniformity(HazenTask):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         # Initialise ACR object
-        self.ACR_obj = ACRObject(self.dcm_list)
+        self.ACR_obj = ACRObject(self.dcm_list,kwargs)
 
     def run(self) -> dict:
         """Main function for performing uniformity measurement
@@ -80,6 +80,11 @@ class ACRUniformity(HazenTask):
         r_small = np.ceil(np.sqrt(100 / np.pi) / res[0]).astype(
             int
         )  # Required pixel radius to produce ~1cm2 ROI
+
+        if self.ACR_obj.MediumACRPhantom==True:
+            r_large = np.ceil(np.sqrt(16000*0.95 / np.pi) / res[0]).astype(int) #Making it a 95% smaller than 160cm^2 (16000mm^2) to avoid the bit at the top
+
+
         d_void = np.ceil(5 / res[0]).astype(
             int
         )  # Offset distance for rectangular void at top of phantom
@@ -94,6 +99,7 @@ class ACRUniformity(HazenTask):
 
         lroi = self.ACR_obj.circular_mask([cxy[0], cxy[1] + d_void], r_large, dims)
         img_masked = lroi * img
+
         half_max = np.percentile(img_masked[np.nonzero(img_masked)], 50)
 
         min_image = img_masked * (img_masked < half_max)

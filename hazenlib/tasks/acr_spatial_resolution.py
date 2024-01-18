@@ -57,7 +57,7 @@ class ACRSpatialResolution(HazenTask):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.ACR_obj = ACRObject(self.dcm_list)
+        self.ACR_obj = ACRObject(self.dcm_list,kwargs)
 
     def run(self) -> dict:
         """Main function for performing spatial resolution measurement
