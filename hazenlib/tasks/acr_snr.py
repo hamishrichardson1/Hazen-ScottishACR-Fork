@@ -34,7 +34,7 @@ class ACRSNR(HazenTask):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.ACR_obj = ACRObject(self.dcm_list)
+        self.ACR_obj = ACRObject(self.dcm_list,kwargs["MediumACRPhantom"])
         # measured slice width is expected to be a floating point number
         try:
             self.measured_slice_width = float(kwargs["measured_slice_width"])

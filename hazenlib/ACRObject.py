@@ -5,7 +5,7 @@ import numpy as np
 
 
 class ACRObject:
-    def __init__(self, dcm_list):
+    def __init__(self, dcm_list,MediumACRPhantom):
         # Initialise an ACR object from a stack of images of the ACR phantom
         self.dcm_list = dcm_list
         # Load files as DICOM and their pixel arrays into 'images'
@@ -22,6 +22,7 @@ class ACRObject:
         self.centre, self.radius = self.find_phantom_center()
         # Store a mask image of slice 7 for reusability
         self.mask_image = self.get_mask_image(self.images[6])
+        self.MediumACRPhantom = MediumACRPhantom
 
     def sort_images(self):
         """
