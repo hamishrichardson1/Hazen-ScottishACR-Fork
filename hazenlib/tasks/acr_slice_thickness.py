@@ -35,7 +35,7 @@ class ACRSliceThickness(HazenTask):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         # Initialise ACR object
-        self.ACR_obj = ACRObject(self.dcm_list)
+        self.ACR_obj = ACRObject(self.dcm_list,kwargs)
 
     def run(self) -> dict:
         """Main function for performing slice width measurement
@@ -228,7 +228,7 @@ class ACRSliceThickness(HazenTask):
 
         with np.errstate(divide="ignore", invalid="ignore"):
             dz = 0.2 * (np.prod(ramp_length, axis=0)) / np.sum(ramp_length, axis=0)
-
+        
         dz = dz[~np.isnan(dz)]
         z_ind = np.argmin(np.abs(dcm.SliceThickness - dz))
 

@@ -33,7 +33,7 @@ class ACRGhosting(HazenTask):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         # Initialise ACR object
-        self.ACR_obj = ACRObject(self.dcm_list)
+        self.ACR_obj = ACRObject(self.dcm_list,kwargs)
 
     def run(self) -> dict:
         """Main function for performing ghosting measurement
@@ -75,6 +75,10 @@ class ACRGhosting(HazenTask):
         r_large = np.ceil(80 / res[0]).astype(
             int
         )  # Required pixel radius to produce ~200cm2 ROI
+
+        if self.ACR_obj.MediumACRPhantom==True:
+            r_large = np.ceil(np.sqrt(16000*0.95 / np.pi) / res[0]).astype(int) #Making it a 95% smaller than 160cm^2 (16000mm^2) to avoid the bit at the top
+
         dims = img.shape
 
         mask = self.ACR_obj.mask_image
