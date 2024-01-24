@@ -163,7 +163,7 @@ class ACRGeometricAccuracy(HazenTask):
             )
             fig.savefig(img_path)
             self.report_files.append(img_path)
-
+        
         return length_dict["Horizontal Distance"], length_dict["Vertical Distance"]
 
     def get_geometric_accuracy_slice5(self, dcm):

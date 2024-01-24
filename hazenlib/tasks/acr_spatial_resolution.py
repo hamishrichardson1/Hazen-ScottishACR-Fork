@@ -443,6 +443,7 @@ class ACRSpatialResolution(HazenTask):
 
         ramp_x = int(cxy[0])
         ramp_y = self.y_position_for_ramp(res, img, cxy)
+        
         width = int(13 * img.shape[0] / 256)
         crop_img = self.crop_image(img, ramp_x, ramp_y, width)
         edge_type, direction = self.get_edge_type(crop_img)
@@ -491,6 +492,9 @@ class ACRSpatialResolution(HazenTask):
                     np.arange(0, width - 1),
                     color="r",
                 )
+            
+
+        
             axes[1].axis("off")
             axes[1].set_title("Cropped Edge", fontsize=14)
 

@@ -124,6 +124,8 @@ class ACRObject:
         """
 
         thresh = cv2.threshold(self.images[0], 127, 255, cv2.THRESH_BINARY)[1]
+        if (self.MediumACRPhantom==True): #the above thresh doesnt work for the med phantom (not sure why but maybe it shouldnt be a flat thresh anyway...)
+            thresh = cv2.threshold(self.images[0], np.max(self.images[0])*0.25, 255, cv2.THRESH_BINARY)[1]
 
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
         dilate = cv2.morphologyEx(thresh, cv2.MORPH_DILATE, kernel)
@@ -134,7 +136,6 @@ class ACRObject:
 
         angle = np.rad2deg(scipy.stats.mode(angles)[0][0])
         rot_angle = angle + 90 if angle < 0 else angle - 90
-
         return rot_angle
 
     def rotate_images(self):
@@ -163,12 +164,11 @@ class ACRObject:
         """
         img = self.images[6]
         dx, dy = self.pixel_spacing
-
         img_blur = cv2.GaussianBlur(img, (1, 1), 0)
         img_grad = cv2.Sobel(img_blur, 0, dx=1, dy=1)
 
-
         if (self.MediumACRPhantom==False):
+
             detected_circles = cv2.HoughCircles(
                 img_grad,
                 cv2.HOUGH_GRADIENT,
@@ -179,12 +179,15 @@ class ACRObject:
                 minRadius=int(180 / (2 * dy)),
                 maxRadius=int(200 / (2 * dx)),
             ).flatten()
-        else:
+        else: #TODO See if we can improve this further...
+            img_blur = cv2.medianBlur(img,5)
+            img_grad = cv2.Sobel(img_blur, 0, dx=1, dy=1)
+
             detected_circles = cv2.HoughCircles(
                 img_grad,
                 cv2.HOUGH_GRADIENT,
                 1,
-                param1=50,
+                param1=40,
                 param2=30,
                 minDist=int(180 / dy),
                 minRadius=int(155 / (2 * dy)),
