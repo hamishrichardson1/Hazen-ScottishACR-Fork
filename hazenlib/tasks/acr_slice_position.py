@@ -152,11 +152,13 @@ class ACRSlicePosition(HazenTask):
 
         # supposed distance from top of phantom to end of wedges
         end_point = n_point + np.round(50 / res[1]).astype(int)
+        if (self.ACR_obj.MediumACRPhantom==True):
+            end_point = n_point + np.round(35 / res[1]).astype(int) #This may need adjusted i'm not to confident that it will always work...
 
         if np.mod(y_investigate_region, 2) == 0:
             # we want an odd number to see -N to N points in the y direction
             y_investigate_region = y_investigate_region + 1
-
+        import matplotlib.pyplot as plt
         invest_y = []
         for m in range(y_investigate_region):
             x_loc = (
@@ -165,16 +167,25 @@ class ACRSlicePosition(HazenTask):
             c = mask[
                 np.arange(n_point, end_point + 1, 1), x_loc
             ]  # mask for resultant line profile
+
             line_prof_y = skimage.measure.profile_line(
                 img, (n_point, x_loc), (end_point, x_loc), mode="constant"
-            ).flatten()
+            ).flatten() 
             invest_y.append(c * line_prof_y)
+
 
         invest_y = np.array(invest_y).T  # transpose array
         mean_y_profile = np.mean(invest_y, 1)  # mean of vertical projections of phantom
+
+
+
         abs_diff_y_profile = np.abs(
             np.diff(mean_y_profile)
         )  # absolute first derivative of mean
+       
+        plt.plot(abs_diff_y_profile)
+        plt.savefig("test.png")
+        plt.close()
 
         y_peaks, _ = self.ACR_obj.find_n_highest_peaks(
             abs_diff_y_profile, 2
@@ -196,6 +207,23 @@ class ACRSlicePosition(HazenTask):
         y_pts = np.append(y, np.round(y[0] + (47 - dist_to_y) / res[1])).astype(
             int
         )  # place 2nd y point 47mm from top of phantom
+        if (self.ACR_obj.MediumACRPhantom == True):
+            y_pts = np.append(y, np.round(y[0] + (35 - dist_to_y) / res[1])).astype(int)  # place 2nd y point 47mm from top of phantom
+
+        
+        plt.imshow(img)
+        plt.axhline(y=y_investigate_region, color='r', linestyle='-')
+        plt.axhline(y=end_point, color='r', linestyle='-')
+
+        plt.axhline(y=y_pts[0], color='b', linestyle='-')
+        plt.axhline(y=y_pts[1], color='b', linestyle='-')
+
+        plt.axhline(y=44, color='g', linestyle='--')
+        plt.axhline(y=80, color='g', linestyle='--')
+
+
+        plt.savefig("test2.png")
+        plt.close()
 
         return x_pts, y_pts
 
