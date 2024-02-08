@@ -1,6 +1,7 @@
 import sys
 sys.path.insert(0,"C:\\Users\\Johnt\\Documents\\GitHub\\Hazen-ScottishACR-Fork")
 sys.path.insert(0,"D:\\Hazen-ScottishACR-Fork")
+sys.path.insert(0,".\\app")
 import pydicom
 from hazenlib.utils import get_dicom_files
 from hazenlib.tasks.acr_snr import ACRSNR
@@ -29,6 +30,7 @@ DCMData["ACR AxT1"] = ACRDICOMSFiles["ACR AxT1"]
 DCMData["ACR AxT2"] = ACRDICOMSFiles["ACR AxT2"]
 
 #Looks like its working fine
+#Not sure how to verify this because its the smooth subtraction method...
 def RunSNR(Data):
     for seq in Data.keys():
         acr_snr_task = ACRSNR(input_data=Data[seq], report_dir=ReportDirPath,report=True,MediumACRPhantom=True)
@@ -36,7 +38,7 @@ def RunSNR(Data):
         print(seq+" SNR :" +str(snr["measurement"]["snr by smoothing"]["measured"]))
 
 
-#Need Sag 
+
 def GeoAcc(Data):
     for seq in Data.keys():
         acr_geometric_accuracy_task = ACRGeometricAccuracy(input_data=Data[seq],report_dir=ReportDirPath,MediumACRPhantom=True,report=True)
@@ -79,3 +81,4 @@ def SliceThickness(Data):
         SliceThick = acr_slice_thickness_task.run()
         print(seq + "Slice Width (mm): " + str(SliceThick['measurement']['slice width mm']))
 
+RunSNR(DCMData)

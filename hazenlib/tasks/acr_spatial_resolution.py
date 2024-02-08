@@ -476,7 +476,7 @@ class ACRSpatialResolution(HazenTask):
                 facecolor="none",
             )
             axes[0].add_patch(rect)
-            axes[0].axis("off")
+            #axes[0].axis("off")
             axes[0].set_title("Segmented Edge")
 
             axes[1].imshow(crop_img)

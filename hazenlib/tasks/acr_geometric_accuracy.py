@@ -88,6 +88,16 @@ class ACRGeometricAccuracy(HazenTask):
 
         mean_err, max_err, cov_l = self.distortion_metric(L)
 
+        #This bit was to do the Sag distortion but it's not really needed if we aquire in all axis, will leave it in anyway
+        if (self.ACR_obj.LocalisierDCM!=None):
+            try:
+                SagLengths = self.get_geometric_accuracy_Sag(self.ACR_obj.LocalisierDCM)
+            except Exception as e:
+                print(
+                    f"Could not calculate the geometric accuracy for sag direction because of : {e}"
+                )
+                traceback.print_exc(file=sys.stdout)
+
         results["measurement"]["distortion"] = {
             "Mean relative measurement error": round(mean_err, 2),
             "Max absolute measurement error": round(max_err, 2),
@@ -99,6 +109,9 @@ class ACRGeometricAccuracy(HazenTask):
             results["report_image"] = self.report_files
 
         return results
+
+    def get_geometric_accuracy_Sag(self,dcm):
+        pass
 
     def get_geometric_accuracy_slice1(self, dcm):
         """Measure geometric accuracy for slice 1

@@ -2,7 +2,8 @@ import cv2
 import scipy
 import skimage
 import numpy as np
-
+from pydicom import dcmread
+import sys
 
 class ACRObject:
     def __init__(self, dcm_list,kwargs):
@@ -28,6 +29,11 @@ class ACRObject:
         self.centre, self.radius = self.find_phantom_center()
         # Store a mask image of slice 7 for reusability
         self.mask_image = self.get_mask_image(self.images[6])
+
+        if "Localiser" in kwargs.keys():
+            self.LocalisierDCM=dcmread(kwargs["Localiser"])
+        else:
+            self.LocalisierDCM = None
         
 
     def sort_images(self):
