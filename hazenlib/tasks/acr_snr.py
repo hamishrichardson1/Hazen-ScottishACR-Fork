@@ -265,7 +265,6 @@ class ACRSNR(HazenTask):
                 ax=None, dcm=dcm, centre_col=int(col), centre_row=int(row)
             )
         ]
-
         noise = [
             np.std(roi, ddof=1)
             for roi in self.get_roi_samples(

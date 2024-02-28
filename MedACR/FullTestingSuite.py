@@ -15,19 +15,32 @@ from hazenlib.ACRObject import ACRObject
 import pathlib
 from tests import TEST_DATA_DIR, TEST_REPORT_DIR
 
-ReportDirPath = "MedACRTests/Results"
+ReportDirPath = "MedACR/Results"
 
-files = get_dicom_files("ACR_MRI1_20240116_104902641")
+files = get_dicom_files("ACR_Phantom_Data")
 ACRDICOMSFiles = {}
 for file in files:
     data = pydicom.dcmread(file)
     if (data.SeriesDescription not in ACRDICOMSFiles.keys()):
         ACRDICOMSFiles[data.SeriesDescription]=[]
     ACRDICOMSFiles[data.SeriesDescription].append(file)
-
 DCMData={}
 DCMData["ACR AxT1"] = ACRDICOMSFiles["ACR AxT1"]
 DCMData["ACR AxT2"] = ACRDICOMSFiles["ACR AxT2"]
+
+
+
+files = get_dicom_files("ACR_ARDL_Tests")
+ACR_DICOM_ARDL_Files = {}
+for file in files:
+    data = pydicom.dcmread(file)
+    if (data.SeriesDescription not in ACR_DICOM_ARDL_Files.keys()):
+        ACR_DICOM_ARDL_Files[data.SeriesDescription]=[]
+    ACR_DICOM_ARDL_Files[data.SeriesDescription].append(file)
+DCM_ARDL_Data={}
+#DCM_ARDL_Data["ACR AxT1"] = ACR_DICOM_ARDL_Files["ACR AxT1"]
+#DCM_ARDL_Data["ACR AxT1 Low SNR"] = ACR_DICOM_ARDL_Files["ACR AxT1 Low SNR"]
+DCM_ARDL_Data["ACR AxT1 High AR"] = ACR_DICOM_ARDL_Files["ACR AxT1 High AR"]
 
 #Looks like its working fine
 #Not sure how to verify this because its the smooth subtraction method...
@@ -44,7 +57,7 @@ def GeoAcc(Data):
         acr_geometric_accuracy_task = ACRGeometricAccuracy(input_data=Data[seq],report_dir=ReportDirPath,MediumACRPhantom=True,report=True)
         GeoDist = acr_geometric_accuracy_task.run()
         print(seq+" Slice 1 Hor Dist: "+str(GeoDist["measurement"][GeoDist["file"][0]]["Horizontal distance"]) + "   "+ " Vert Dist: "+str(GeoDist["measurement"][GeoDist["file"][0]]["Vertical distance"]))
-        print(seq+" Slice 5 Hor Dist:"+str(GeoDist["measurement"][GeoDist["file"][1]]["Horizontal distance"]) + "   "+ " Vert Dist:"+str(GeoDist["measurement"][GeoDist["file"][1]]["Horizontal distance"])+ "   "+ " Diag SW Dist:"+str(GeoDist["measurement"][GeoDist["file"][1]]["Diagonal distance SW"])+ "   "+ "Diag SE Dist:"+str(GeoDist["measurement"][GeoDist["file"][1]]["Diagonal distance SE"]))
+        print(seq+" Slice 5 Hor Dist:"+str(GeoDist["measurement"][GeoDist["file"][1]]["Horizontal distance"]) + "   "+ " Vert Dist:"+str(GeoDist["measurement"][GeoDist["file"][1]]["Vertical distance"])+ "   "+ " Diag SW Dist:"+str(GeoDist["measurement"][GeoDist["file"][1]]["Diagonal distance SW"])+ "   "+ "Diag SE Dist:"+str(GeoDist["measurement"][GeoDist["file"][1]]["Diagonal distance SE"]))
 
 #seems to be working but i will keep an eye on it...
 def SpatialRes(Data):
@@ -81,4 +94,4 @@ def SliceThickness(Data):
         SliceThick = acr_slice_thickness_task.run()
         print(seq + "Slice Width (mm): " + str(SliceThick['measurement']['slice width mm']))
 
-RunSNR(DCMData)
+SpatialRes(DCM_ARDL_Data)

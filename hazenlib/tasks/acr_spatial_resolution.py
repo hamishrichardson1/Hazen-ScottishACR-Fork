@@ -48,7 +48,10 @@ from hazenlib.HazenTask import HazenTask
 from hazenlib.ACRObject import ACRObject
 from hazenlib.logger import logger
 
-
+import sys
+import matplotlib.pyplot as plt
+import scipy.ndimage
+import skimage.segmentation
 class ACRSpatialResolution(HazenTask):
     """Spatial resolution measurement class for DICOM images of the ACR phantom
 
@@ -79,6 +82,10 @@ class ACRSpatialResolution(HazenTask):
         # Initialise results dictionary
         results = self.init_result_dict()
         results["file"] = self.img_desc(mtf_dcm)
+
+        res = self.get_dotpairs(mtf_dcm)
+        sys.exit()
+
 
         try:
             raw_res, fitted_res = self.get_mtf50(mtf_dcm)
@@ -543,3 +550,46 @@ class ACRSpatialResolution(HazenTask):
             self.report_files.append(img_path)
 
         return eff_raw_res, eff_fit_res
+
+
+    #Function to remove the squares we are interested in
+    def GetResSquares(self,dcm):
+        PixelArray = dcm.pixel_array
+        res = dcm.PixelSpacing
+        Centre = self.ACR_obj.centre
+        radius = self.ACR_obj.radius
+        BottomPoint = [Centre[0],Centre[1]+radius]
+        leftCorner = [ BottomPoint[0] -int(round(57/res[0],0)),
+                       BottomPoint[1] -int(round(26/res[1],0))]
+
+        #Crop the ROI we need
+        ROISize = [int(round(114/res[0],0)),int(round(37/res[1],0))]
+        Crop = PixelArray[leftCorner[1]-ROISize[1]:leftCorner[1],leftCorner[0]:leftCorner[0]+ROISize[0]]
+        Binary_Crop = Crop > np.max(Crop)*0.1
+
+        #This line gets rid of anything touching the border edge, super handy!
+        Binary_Crop=skimage.segmentation.clear_border(Binary_Crop)
+        #Close any gaps within the footprint
+        Binary_Crop=skimage.morphology.binary_closing(Binary_Crop,skimage.morphology.square(3))
+        label_image = skimage.morphology.label(Binary_Crop)
+        ResSquares=[]
+        Xpos=[]
+        for region in skimage.measure.regionprops(label_image):
+            if region.area >= 100:
+                minr, minc, maxr, maxc = region.bbox
+                ROI = Crop[minr:maxr,minc:maxc]
+                ResSquares.append(ROI)
+                Xpos.append(region.centroid[1])
+
+        #This is to remove the left most object we dont care about...
+        del ResSquares[Xpos.index(min(Xpos))]
+        
+        #Get a base line value 
+        BaseCentre = [self.ACR_obj.centre[0],self.ACR_obj.centre[1]-int(round(20/res[0],0))]
+        #Extract a 10x10 pixel square to just get a baseline value
+        BaseLine = np.mean(PixelArray[BaseCentre[1]-5:BaseCentre[1]+5,BaseCentre[0]-5:BaseCentre[0]+5])
+        
+        return ResSquares,BaseLine
+
+    def get_dotpairs(self,dcm):
+        ResSquare,baseline = self.GetResSquares(dcm)
