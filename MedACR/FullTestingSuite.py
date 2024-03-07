@@ -66,6 +66,12 @@ def SpatialRes(Data):
         Res = acr_spatial_resolution_task.run()
         print(seq+" MTF Raw :" +str(Res["measurement"]["raw mtf50"]) + "     MTF Fitted :" + str(Res["measurement"]["fitted mtf50"]))
 
+def SpatialResUsingDotMatrix(Data):
+    for seq in Data.keys():
+        acr_spatial_resolution_task = ACRSpatialResolution(input_data=Data[seq],report_dir=ReportDirPath,report=True,MediumACRPhantom=True,UseDotMatrix=True)
+        Res = acr_spatial_resolution_task.run()
+        print(Res)
+
 #Looks like its working but ACR guidance suggrst capturing the black bit (seems weird but we can make it work if others want to)
 def Uniformity(Data):
     for seq in Data.keys():
@@ -94,4 +100,4 @@ def SliceThickness(Data):
         SliceThick = acr_slice_thickness_task.run()
         print(seq + "Slice Width (mm): " + str(SliceThick['measurement']['slice width mm']))
 
-SpatialRes(DCM_ARDL_Data)
+SpatialResUsingDotMatrix(DCM_ARDL_Data)

@@ -83,17 +83,23 @@ class ACRSpatialResolution(HazenTask):
         results = self.init_result_dict()
         results["file"] = self.img_desc(mtf_dcm)
 
-        res = self.get_dotpairs(mtf_dcm)
-        sys.exit()
-
-
         try:
-            raw_res, fitted_res = self.get_mtf50(mtf_dcm)
-            results["measurement"] = {
-                "estimated rotation angle": round(rot_ang, 2),
-                "raw mtf50": round(raw_res, 2),
-                "fitted mtf50": round(fitted_res, 2),
-            }
+            if (self.ACR_obj.UseDotMatrix==True):
+                res = self.get_dotpairs(mtf_dcm)
+                results["measurement"] = {
+                    "1.1mm holes": res[0],
+                    "1.0mm holes": res[1],
+                    "0.9mm holes": res[2],
+                    "0.8mm holes": res[3],
+                }
+            else:
+                raw_res, fitted_res = self.get_mtf50(mtf_dcm)
+                results["measurement"] = {
+                    "estimated rotation angle": round(rot_ang, 2),
+                    "raw mtf50": round(raw_res, 2),
+                    "fitted mtf50": round(fitted_res, 2),
+                }
+
         except Exception as e:
             print(
                 f"Could not calculate the spatial resolution for {self.img_desc(mtf_dcm)} because of : {e}"
@@ -552,7 +558,7 @@ class ACRSpatialResolution(HazenTask):
         return eff_raw_res, eff_fit_res
 
 
-    #Function to remove the squares we are interested in
+    #Function to extract the squares we are interested in
     def GetResSquares(self,dcm):
         PixelArray = dcm.pixel_array
         res = dcm.PixelSpacing
@@ -574,22 +580,53 @@ class ACRSpatialResolution(HazenTask):
         label_image = skimage.morphology.label(Binary_Crop)
         ResSquares=[]
         Xpos=[]
+        Crops = []
         for region in skimage.measure.regionprops(label_image):
             if region.area >= 100:
                 minr, minc, maxr, maxc = region.bbox
                 ROI = Crop[minr:maxr,minc:maxc]
                 ResSquares.append(ROI)
                 Xpos.append(region.centroid[1])
+                Crops.append([minr+leftCorner[0],maxr+leftCorner[0],minc+leftCorner[1],maxc+leftCorner[1]])
 
         #This is to remove the left most object we dont care about...
         del ResSquares[Xpos.index(min(Xpos))]
         
-        #Get a base line value 
-        BaseCentre = [self.ACR_obj.centre[0],self.ACR_obj.centre[1]-int(round(20/res[0],0))]
-        #Extract a 10x10 pixel square to just get a baseline value
-        BaseLine = np.mean(PixelArray[BaseCentre[1]-5:BaseCentre[1]+5,BaseCentre[0]-5:BaseCentre[0]+5])
-        
-        return ResSquares,BaseLine
+        return ResSquares,Crops
 
     def get_dotpairs(self,dcm):
-        ResSquare,baseline = self.GetResSquares(dcm)
+        ResSquare,CropsLoc = self.GetResSquares(dcm)
+        Results = []
+        for square in ResSquare:
+            var = round(cv2.Laplacian(square, cv2.CV_64F).var(),2)
+            Results.append(var)
+        
+        if self.report:
+            import matplotlib.pyplot as plt
+            import matplotlib.patches as patches
+
+            img = dcm.pixel_array
+
+            fig, axes = plt.subplots(5, 1)
+            fig.set_size_inches(8, 40)
+            fig.tight_layout(pad=4)
+
+            axes[0].imshow(img, interpolation="none")
+
+            i = 0
+            minr = CropsLoc[i][0]
+            maxr = CropsLoc[i][1]
+            minc = CropsLoc[i][2]
+            maxc = CropsLoc[i][3]
+            sizeX = maxr-minr
+            sizeY = maxc-minc
+            rect = patches.Rectangle((maxr, minc), sizeX, sizeY, linewidth=1, edgecolor='r', facecolor='none')
+            axes[0].add_patch(rect)
+
+            img_path = os.path.realpath(
+            os.path.join(self.report_path, f"{self.img_desc(dcm)}.png")
+            )
+            fig.savefig(img_path)
+            self.report_files.append(img_path)
+
+        return Results

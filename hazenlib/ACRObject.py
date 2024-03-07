@@ -8,10 +8,14 @@ import sys
 class ACRObject:
     def __init__(self, dcm_list,kwargs):
         #Added in a medium ACR phantom flag, not sure if this is the best way of doing this but will leave it for now..
+        self.MediumACRPhantom = False
         if "MediumACRPhantom" in kwargs.keys():
             self.MediumACRPhantom = kwargs["MediumACRPhantom"]
-        else:
-            self.MediumACRPhantom = False
+            
+        #Added in a flag to make use of the dot matrix instead of MTF for spatial res
+        self.UseDotMatrix=False
+        if "UseDotMatrix" in kwargs.keys():
+            self.UseDotMatrix =kwargs["UseDotMatrix"]
 
         # Initialise an ACR object from a stack of images of the ACR phantom
         self.dcm_list = dcm_list
