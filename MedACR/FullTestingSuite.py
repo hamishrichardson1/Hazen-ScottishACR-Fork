@@ -28,8 +28,6 @@ DCMData={}
 DCMData["ACR AxT1"] = ACRDICOMSFiles["ACR AxT1"]
 DCMData["ACR AxT2"] = ACRDICOMSFiles["ACR AxT2"]
 
-
-
 files = get_dicom_files("ACR_ARDL_Tests")
 ACR_DICOM_ARDL_Files = {}
 for file in files:

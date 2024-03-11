@@ -573,6 +573,9 @@ class ACRSpatialResolution(HazenTask):
         Crop = PixelArray[leftCorner[1]-ROISize[1]:leftCorner[1],leftCorner[0]:leftCorner[0]+ROISize[0]]
         Binary_Crop = Crop > np.max(Crop)*0.1
 
+        plt.imshow(Crop)
+        plt.savefig("test.png")
+
         #This line gets rid of anything touching the border edge, super handy!
         Binary_Crop=skimage.segmentation.clear_border(Binary_Crop)
         #Close any gaps within the footprint
@@ -580,22 +583,26 @@ class ACRSpatialResolution(HazenTask):
         label_image = skimage.morphology.label(Binary_Crop)
         ResSquares=[]
         Xpos=[]
-        Crops = []
+        CropsBB = []
+        ROIS=[]
         for region in skimage.measure.regionprops(label_image):
             if region.area >= 100:
                 minr, minc, maxr, maxc = region.bbox
                 ROI = Crop[minr:maxr,minc:maxc]
                 ResSquares.append(ROI)
                 Xpos.append(region.centroid[1])
-                Crops.append([minr+leftCorner[0],maxr+leftCorner[0],minc+leftCorner[1],maxc+leftCorner[1]])
+                CropsBB.append([minr+leftCorner[1]-ROISize[1], maxr+leftCorner[1]-ROISize[1], minc+leftCorner[0], maxc+leftCorner[0]])
+                ROIS.append(ROI)
 
         #This is to remove the left most object we dont care about...
         del ResSquares[Xpos.index(min(Xpos))]
+        del CropsBB[Xpos.index(min(Xpos))]
+        del ROIS[Xpos.index(min(Xpos))]
         
-        return ResSquares,Crops
+        return ResSquares,CropsBB,ROIS
 
     def get_dotpairs(self,dcm):
-        ResSquare,CropsLoc = self.GetResSquares(dcm)
+        ResSquare,CropsLoc,ROIS = self.GetResSquares(dcm)
         Results = []
         for square in ResSquare:
             var = round(cv2.Laplacian(square, cv2.CV_64F).var(),2)
@@ -606,26 +613,31 @@ class ACRSpatialResolution(HazenTask):
             import matplotlib.patches as patches
 
             img = dcm.pixel_array
-
             fig, axes = plt.subplots(5, 1)
             fig.set_size_inches(8, 40)
             fig.tight_layout(pad=4)
 
             axes[0].imshow(img, interpolation="none")
+            axes[0].set_title("Phantom Image")
+            colors = ["blue","orange","green","red"]
+            Titles = ["1.1 mm holes","1.0 mm holes","0.9 mm holes","0.8 mm holes"]
+            for i in range(0,len(CropsLoc)):
+                minr = CropsLoc[i][0]
+                maxr = CropsLoc[i][1]
+                minc = CropsLoc[i][2]
+                maxc = CropsLoc[i][3]
+                bx = (minc, maxc, maxc, minc, minc)
+                by = (minr, minr, maxr, maxr, minr)
+                axes[0].plot(bx, by,color=colors[i], linewidth=2.5)
 
-            i = 0
-            minr = CropsLoc[i][0]
-            maxr = CropsLoc[i][1]
-            minc = CropsLoc[i][2]
-            maxc = CropsLoc[i][3]
-            sizeX = maxr-minr
-            sizeY = maxc-minc
-            rect = patches.Rectangle((maxr, minc), sizeX, sizeY, linewidth=1, edgecolor='r', facecolor='none')
-            axes[0].add_patch(rect)
+                axes[i+1].imshow(ROIS[i])
+                axes[i+1].set_title(Titles[i] + " Res Score: " + str("{:0.3e}".format(Results[i])))
+                for axis in ['top','bottom','left','right']:
+                    axes[i+1].spines[axis].set_linewidth(6)
+                    axes[i+1].spines[axis].set_color(colors[i])
 
             img_path = os.path.realpath(
-            os.path.join(self.report_path, f"{self.img_desc(dcm)}.png")
-            )
+            os.path.join(self.report_path, f"{self.img_desc(dcm)}.png"))
             fig.savefig(img_path)
             self.report_files.append(img_path)
 
