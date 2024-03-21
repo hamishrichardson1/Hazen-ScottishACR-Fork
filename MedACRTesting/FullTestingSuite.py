@@ -15,9 +15,9 @@ from hazenlib.ACRObject import ACRObject
 import pathlib
 from tests import TEST_DATA_DIR, TEST_REPORT_DIR
 
-ReportDirPath = "MedACR/Results"
+ReportDirPath = "MedACRTesting/Results"
 
-files = get_dicom_files("ACR_Phantom_Data")
+files = get_dicom_files("MedACRTesting/ACR_Phantom_Data")
 ACRDICOMSFiles = {}
 for file in files:
     data = pydicom.dcmread(file)
@@ -28,7 +28,7 @@ DCMData={}
 DCMData["ACR AxT1"] = ACRDICOMSFiles["ACR AxT1"]
 DCMData["ACR AxT2"] = ACRDICOMSFiles["ACR AxT2"]
 
-files = get_dicom_files("ACR_ARDL_Tests")
+files = get_dicom_files("MedACRTesting/ACR_ARDL_Tests")
 ACR_DICOM_ARDL_Files = {}
 for file in files:
     data = pydicom.dcmread(file)

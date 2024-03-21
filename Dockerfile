@@ -27,4 +27,5 @@ USER appuser
 ENV PYTHONPATH "${PYTHONPATH}:/app"
 
 # During debugging, this entry point will be overridden. For more information, please refer to https://aka.ms/vscode-docker-python-debug
-CMD ["python", "MedACR\FullTestingSuite.py"]
+#CMD ["python", "MedACR\FullTestingSuite.py"]
+ENTRYPOINT ["python", "DockerRunMedACR.py"]
