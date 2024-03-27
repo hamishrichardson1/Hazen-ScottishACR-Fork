@@ -41,3 +41,22 @@ D:\Hazen-ScottishACR-Fork\ACR Phantom GUI\bin\x64\Debug\System.Numerics.Vectors.
 D:\Hazen-ScottishACR-Fork\ACR Phantom GUI\bin\x64\Debug\System.Runtime.CompilerServices.Unsafe.xml
 D:\Hazen-ScottishACR-Fork\ACR Phantom GUI\bin\x64\Debug\System.Threading.Tasks.Extensions.xml
 D:\Hazen-ScottishACR-Fork\ACR Phantom GUI\obj\x64\Debug\ACR Phantom GUI.csproj.CopyComplete
+D:\Hazen-ScottishACR-Fork\ACR Phantom GUI\bin\x64\Debug\CommunityToolkit.HighPerformance.dll
+D:\Hazen-ScottishACR-Fork\ACR Phantom GUI\bin\x64\Debug\fo-dicom.core.dll
+D:\Hazen-ScottishACR-Fork\ACR Phantom GUI\bin\x64\Debug\Microsoft.Bcl.HashCode.dll
+D:\Hazen-ScottishACR-Fork\ACR Phantom GUI\bin\x64\Debug\System.Diagnostics.DiagnosticSource.dll
+D:\Hazen-ScottishACR-Fork\ACR Phantom GUI\bin\x64\Debug\System.Text.Encoding.CodePages.dll
+D:\Hazen-ScottishACR-Fork\ACR Phantom GUI\bin\x64\Debug\System.Text.Encodings.Web.dll
+D:\Hazen-ScottishACR-Fork\ACR Phantom GUI\bin\x64\Debug\System.Text.Json.dll
+D:\Hazen-ScottishACR-Fork\ACR Phantom GUI\bin\x64\Debug\System.Threading.Channels.dll
+D:\Hazen-ScottishACR-Fork\ACR Phantom GUI\bin\x64\Debug\System.ValueTuple.dll
+D:\Hazen-ScottishACR-Fork\ACR Phantom GUI\bin\x64\Debug\CommunityToolkit.HighPerformance.pdb
+D:\Hazen-ScottishACR-Fork\ACR Phantom GUI\bin\x64\Debug\CommunityToolkit.HighPerformance.xml
+D:\Hazen-ScottishACR-Fork\ACR Phantom GUI\bin\x64\Debug\fo-dicom.core.xml
+D:\Hazen-ScottishACR-Fork\ACR Phantom GUI\bin\x64\Debug\Microsoft.Bcl.HashCode.xml
+D:\Hazen-ScottishACR-Fork\ACR Phantom GUI\bin\x64\Debug\System.Diagnostics.DiagnosticSource.xml
+D:\Hazen-ScottishACR-Fork\ACR Phantom GUI\bin\x64\Debug\System.Text.Encoding.CodePages.xml
+D:\Hazen-ScottishACR-Fork\ACR Phantom GUI\bin\x64\Debug\System.Text.Encodings.Web.xml
+D:\Hazen-ScottishACR-Fork\ACR Phantom GUI\bin\x64\Debug\System.Text.Json.xml
+D:\Hazen-ScottishACR-Fork\ACR Phantom GUI\bin\x64\Debug\System.Threading.Channels.xml
+D:\Hazen-ScottishACR-Fork\ACR Phantom GUI\bin\x64\Debug\System.ValueTuple.xml

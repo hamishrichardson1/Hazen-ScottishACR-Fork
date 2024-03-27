@@ -28,72 +28,73 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.MainTabControl = new System.Windows.Forms.TabControl();
-            this.StartPage = new System.Windows.Forms.TabPage();
-            this.SNRResults = new System.Windows.Forms.TabPage();
-            this.GeometricAccuracy = new System.Windows.Forms.TabPage();
-            this.StartButton = new System.Windows.Forms.Button();
-            this.DCMPath = new System.Windows.Forms.TextBox();
-            this.label1 = new System.Windows.Forms.Label();
+            this.label3 = new System.Windows.Forms.Label();
+            this.LogBoxField = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
             this.OuputPath = new System.Windows.Forms.TextBox();
-            this.LogBoxField = new System.Windows.Forms.TextBox();
-            this.label3 = new System.Windows.Forms.Label();
-            this.MainTabControl.SuspendLayout();
-            this.StartPage.SuspendLayout();
+            this.label1 = new System.Windows.Forms.Label();
+            this.StartButton = new System.Windows.Forms.Button();
+            this.DCMPath = new System.Windows.Forms.TextBox();
+            this.ShowAllOutput = new System.Windows.Forms.CheckBox();
+            this.SeqSelector = new System.Windows.Forms.ComboBox();
+            this.label4 = new System.Windows.Forms.Label();
+            this.ResultsTable = new System.Windows.Forms.DataGridView();
+            this.TestCol = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ToleranceCol = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ResultCol = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.PassedCol = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            ((System.ComponentModel.ISupportInitialize)(this.ResultsTable)).BeginInit();
             this.SuspendLayout();
             // 
-            // MainTabControl
+            // label3
             // 
-            this.MainTabControl.Controls.Add(this.StartPage);
-            this.MainTabControl.Controls.Add(this.SNRResults);
-            this.MainTabControl.Controls.Add(this.GeometricAccuracy);
-            this.MainTabControl.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.MainTabControl.Location = new System.Drawing.Point(0, 0);
-            this.MainTabControl.Name = "MainTabControl";
-            this.MainTabControl.SelectedIndex = 0;
-            this.MainTabControl.Size = new System.Drawing.Size(1058, 598);
-            this.MainTabControl.TabIndex = 0;
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(189, 221);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(25, 13);
+            this.label3.TabIndex = 6;
+            this.label3.Text = "Log";
             // 
-            // StartPage
+            // LogBoxField
             // 
-            this.StartPage.Controls.Add(this.label3);
-            this.StartPage.Controls.Add(this.LogBoxField);
-            this.StartPage.Controls.Add(this.label2);
-            this.StartPage.Controls.Add(this.OuputPath);
-            this.StartPage.Controls.Add(this.label1);
-            this.StartPage.Controls.Add(this.DCMPath);
-            this.StartPage.Controls.Add(this.StartButton);
-            this.StartPage.Location = new System.Drawing.Point(4, 22);
-            this.StartPage.Name = "StartPage";
-            this.StartPage.Padding = new System.Windows.Forms.Padding(3);
-            this.StartPage.Size = new System.Drawing.Size(1050, 572);
-            this.StartPage.TabIndex = 0;
-            this.StartPage.Text = "Start Page";
-            this.StartPage.UseVisualStyleBackColor = true;
+            this.LogBoxField.Location = new System.Drawing.Point(185, 244);
+            this.LogBoxField.Multiline = true;
+            this.LogBoxField.Name = "LogBoxField";
+            this.LogBoxField.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.LogBoxField.Size = new System.Drawing.Size(861, 101);
+            this.LogBoxField.TabIndex = 5;
             // 
-            // SNRResults
+            // label2
             // 
-            this.SNRResults.Location = new System.Drawing.Point(4, 22);
-            this.SNRResults.Name = "SNRResults";
-            this.SNRResults.Padding = new System.Windows.Forms.Padding(3);
-            this.SNRResults.Size = new System.Drawing.Size(1050, 572);
-            this.SNRResults.TabIndex = 1;
-            this.SNRResults.Text = "SNR Results";
-            this.SNRResults.UseVisualStyleBackColor = true;
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(12, 38);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(67, 13);
+            this.label2.TabIndex = 4;
+            this.label2.Text = "Results Path";
             // 
-            // GeometricAccuracy
+            // OuputPath
             // 
-            this.GeometricAccuracy.Location = new System.Drawing.Point(4, 22);
-            this.GeometricAccuracy.Name = "GeometricAccuracy";
-            this.GeometricAccuracy.Size = new System.Drawing.Size(1050, 572);
-            this.GeometricAccuracy.TabIndex = 2;
-            this.GeometricAccuracy.Text = "Geometric Accuracy";
-            this.GeometricAccuracy.UseVisualStyleBackColor = true;
+            this.OuputPath.Location = new System.Drawing.Point(95, 35);
+            this.OuputPath.Name = "OuputPath";
+            this.OuputPath.ReadOnly = true;
+            this.OuputPath.Size = new System.Drawing.Size(465, 20);
+            this.OuputPath.TabIndex = 3;
+            this.OuputPath.Text = "C:/Users/John/Desktop/DockerLocalTest/ACRResults";
+            this.OuputPath.MouseClick += new System.Windows.Forms.MouseEventHandler(this.OutputPath_click);
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(12, 12);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(67, 13);
+            this.label1.TabIndex = 2;
+            this.label1.Text = "DICOM Path";
             // 
             // StartButton
             // 
-            this.StartButton.Location = new System.Drawing.Point(8, 526);
+            this.StartButton.Location = new System.Drawing.Point(30, 322);
             this.StartButton.Name = "StartButton";
             this.StartButton.Size = new System.Drawing.Size(117, 23);
             this.StartButton.TabIndex = 0;
@@ -103,77 +104,108 @@
             // 
             // DCMPath
             // 
-            this.DCMPath.Location = new System.Drawing.Point(81, 13);
+            this.DCMPath.Location = new System.Drawing.Point(95, 9);
             this.DCMPath.Name = "DCMPath";
+            this.DCMPath.ReadOnly = true;
             this.DCMPath.Size = new System.Drawing.Size(465, 20);
             this.DCMPath.TabIndex = 1;
             this.DCMPath.Text = "D:/Hazen-ScottishACR-Fork/MedACRTesting/ACR_ARDL_Tests";
+            this.DCMPath.MouseClick += new System.Windows.Forms.MouseEventHandler(this.DCMPath_click);
+            this.DCMPath.TextChanged += new System.EventHandler(this.DCMPath_TextChanged);
             // 
-            // label1
+            // ShowAllOutput
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(8, 16);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(67, 13);
-            this.label1.TabIndex = 2;
-            this.label1.Text = "DICOM Path";
+            this.ShowAllOutput.AutoSize = true;
+            this.ShowAllOutput.Location = new System.Drawing.Point(220, 221);
+            this.ShowAllOutput.Name = "ShowAllOutput";
+            this.ShowAllOutput.Size = new System.Drawing.Size(102, 17);
+            this.ShowAllOutput.TabIndex = 7;
+            this.ShowAllOutput.Text = "Show All Output";
+            this.ShowAllOutput.UseVisualStyleBackColor = true;
             // 
-            // label2
+            // SeqSelector
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(8, 42);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(67, 13);
-            this.label2.TabIndex = 4;
-            this.label2.Text = "Results Path";
+            this.SeqSelector.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.SeqSelector.FormattingEnabled = true;
+            this.SeqSelector.Location = new System.Drawing.Point(586, 34);
+            this.SeqSelector.Name = "SeqSelector";
+            this.SeqSelector.Size = new System.Drawing.Size(460, 21);
+            this.SeqSelector.TabIndex = 8;
+            this.SeqSelector.SelectedIndexChanged += new System.EventHandler(this.SeqSelector_SelectedIndexChanged);
             // 
-            // OuputPath
+            // label4
             // 
-            this.OuputPath.Location = new System.Drawing.Point(81, 39);
-            this.OuputPath.Name = "OuputPath";
-            this.OuputPath.Size = new System.Drawing.Size(465, 20);
-            this.OuputPath.TabIndex = 3;
-            this.OuputPath.Text = "C:/Users/John/Desktop/DockerLocalTest/ACRResults";
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(586, 16);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(103, 13);
+            this.label4.TabIndex = 9;
+            this.label4.Text = "Sequence Selection";
             // 
-            // LogBoxField
+            // ResultsTable
             // 
-            this.LogBoxField.Location = new System.Drawing.Point(157, 415);
-            this.LogBoxField.Multiline = true;
-            this.LogBoxField.Name = "LogBoxField";
-            this.LogBoxField.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.LogBoxField.Size = new System.Drawing.Size(887, 151);
-            this.LogBoxField.TabIndex = 5;
+            this.ResultsTable.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.ResultsTable.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.TestCol,
+            this.ToleranceCol,
+            this.ResultCol,
+            this.PassedCol});
+            this.ResultsTable.Location = new System.Drawing.Point(328, 61);
+            this.ResultsTable.Name = "ResultsTable";
+            this.ResultsTable.ReadOnly = true;
+            this.ResultsTable.RowHeadersVisible = false;
+            this.ResultsTable.Size = new System.Drawing.Size(718, 170);
+            this.ResultsTable.TabIndex = 10;
             // 
-            // label3
+            // TestCol
             // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(154, 399);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(25, 13);
-            this.label3.TabIndex = 6;
-            this.label3.Text = "Log";
+            this.TestCol.HeaderText = "Test";
+            this.TestCol.Name = "TestCol";
+            this.TestCol.ReadOnly = true;
+            // 
+            // ToleranceCol
+            // 
+            this.ToleranceCol.HeaderText = "Tolerance";
+            this.ToleranceCol.Name = "ToleranceCol";
+            this.ToleranceCol.ReadOnly = true;
+            // 
+            // ResultCol
+            // 
+            this.ResultCol.HeaderText = "Result";
+            this.ResultCol.Name = "ResultCol";
+            this.ResultCol.ReadOnly = true;
+            // 
+            // PassedCol
+            // 
+            this.PassedCol.HeaderText = "Passed?";
+            this.PassedCol.Name = "PassedCol";
+            this.PassedCol.ReadOnly = true;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1058, 598);
-            this.Controls.Add(this.MainTabControl);
+            this.ClientSize = new System.Drawing.Size(1058, 357);
+            this.Controls.Add(this.ResultsTable);
+            this.Controls.Add(this.label4);
+            this.Controls.Add(this.SeqSelector);
+            this.Controls.Add(this.ShowAllOutput);
+            this.Controls.Add(this.label3);
+            this.Controls.Add(this.LogBoxField);
+            this.Controls.Add(this.DCMPath);
+            this.Controls.Add(this.StartButton);
+            this.Controls.Add(this.label2);
+            this.Controls.Add(this.OuputPath);
+            this.Controls.Add(this.label1);
             this.Name = "Form1";
             this.Text = "Form1";
-            this.MainTabControl.ResumeLayout(false);
-            this.StartPage.ResumeLayout(false);
-            this.StartPage.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.ResultsTable)).EndInit();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
         #endregion
-
-        private System.Windows.Forms.TabControl MainTabControl;
-        private System.Windows.Forms.TabPage StartPage;
-        private System.Windows.Forms.TabPage SNRResults;
-        private System.Windows.Forms.TabPage GeometricAccuracy;
         private System.Windows.Forms.Button StartButton;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.TextBox LogBoxField;
@@ -181,6 +213,14 @@
         private System.Windows.Forms.TextBox OuputPath;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TextBox DCMPath;
+        private System.Windows.Forms.CheckBox ShowAllOutput;
+        private System.Windows.Forms.ComboBox SeqSelector;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.DataGridView ResultsTable;
+        private System.Windows.Forms.DataGridViewTextBoxColumn TestCol;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ToleranceCol;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ResultCol;
+        private System.Windows.Forms.DataGridViewTextBoxColumn PassedCol;
     }
 }
 
