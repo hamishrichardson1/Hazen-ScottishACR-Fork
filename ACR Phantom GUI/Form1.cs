@@ -25,6 +25,9 @@ using FellowOakDicom.Network;
 using System.Text.RegularExpressions;
 using System.Runtime.CompilerServices;
 using static System.Net.WebRequestMethods;
+using System.Collections;
+using EvilDICOM.Core.Element;
+using static System.Windows.Forms.LinkLabel;
 
 namespace ACR_Phantom_GUI
 {
@@ -32,8 +35,10 @@ namespace ACR_Phantom_GUI
     {
 
         private BackgroundWorker Worker;
+        private BackgroundWorker Updater;
         private string Arguments = "";
         private Dictionary<string, List<FileInfo>> FileDict;
+        private string UpdaterString = "";
         public Form1()
         {
             try
@@ -45,6 +50,14 @@ namespace ACR_Phantom_GUI
                 Worker.RunWorkerCompleted += Worker_RunWorkerCompleted;
                 Worker.WorkerReportsProgress = true;
                 Worker.WorkerSupportsCancellation = true;
+
+                if (!this.IsHandleCreated)
+                    this.CreateControl();
+
+                Updater = new BackgroundWorker();
+                Updater.DoWork += Updater_DoWork;
+                Updater.RunWorkerCompleted += Updater_RunWorkerCompleted;
+                Updater.RunWorkerAsync();
                 UpdateSequences();
             }
             catch (Exception ex) { MessageBox.Show(ex.Message); }
@@ -128,7 +141,7 @@ namespace ACR_Phantom_GUI
                 string Sequence = null;
                 SeqSelector.Invoke(new MethodInvoker(delegate { Sequence = SeqSelector.Text; }));
 
-                var processInfo = new ProcessStartInfo("docker", $"run -v " + DCMFolder + ":/app/DataTransfer -v" + OutputFolder + ":/app/OutputFolder -v C:/Users/John/Desktop/DockerLocalTest/ToleranceTable:/app/ToleranceTable docker-acr-phantom -seq \"" + Sequence + "\" " + Arguments);
+                var processInfo = new ProcessStartInfo("docker", $"run -v " + DCMFolder + ":/app/DataTransfer -v" + OutputFolder + ":/app/OutputFolder -v C:/Users/John/Desktop/DockerLocalTest/ToleranceTable:/app/ToleranceTable doctorspacemanphd/dockeracrphantom -seq \"" + Sequence + "\" " + Arguments);
                 processInfo.CreateNoWindow = true;
                 processInfo.UseShellExecute = false;
                 processInfo.RedirectStandardOutput = true;
@@ -220,11 +233,17 @@ namespace ACR_Phantom_GUI
             catch (Exception ex) { MessageBox.Show(ex.Message); }
         }
 
+        void OutputUpdaterHandler(object sendingProcess, DataReceivedEventArgs outLine)
+        {
+            LogBoxField.Invoke(new MethodInvoker(delegate { LogBoxField.Text += outLine.Data+Environment.NewLine; LogBoxField.SelectionStart = LogBoxField.Text.Length; LogBoxField.ScrollToCaret(); }));
+            //UpdaterString+= outLine.Data + Environment.NewLine;
+        }
+
         private void Worker_ProgressChanged(object sender, System.ComponentModel.ProgressChangedEventArgs e)
         {
             try
             {
-
+                //will leave this here incase somepoint i want a progress bar or something
             }
             catch (Exception ex) { MessageBox.Show(ex.Message); }
         }
@@ -284,6 +303,7 @@ namespace ACR_Phantom_GUI
             List<string> PathsExtension = new List<string>();
             List<string> Keys = new List<string>();
 
+
             PathsExtension.Add("ACRGeometricAccuracy");
             Keys.Add("Geometric Acccuracy");
 
@@ -305,19 +325,29 @@ namespace ACR_Phantom_GUI
             PathsExtension.Add("ACRUniformity");
             Keys.Add("Uniformity");
 
+            ResultComboBox.Items.Clear();
+
             for (int i = 0; i < Keys.Count; i++)
             {
                 ResultComboBox.Items.Add(Keys[i]);
                 FileDict.Add(Keys[i], new List<FileInfo>());
                 string[] paths = { OutputPath.Text, PathsExtension[i] };
                 string fullpath = Path.Combine(paths);
-                DirectoryInfo info = new DirectoryInfo(fullpath);
-                FileInfo[]  Files = info.GetFiles("*.png");
-                foreach (FileInfo file in Files)
+                if (Directory.Exists(fullpath))
                 {
-                    if (file.Name.Contains(SeqSelector.Text.Replace(" ", "_")))
+                    DirectoryInfo info = new DirectoryInfo(fullpath);
+                    FileInfo[] Files = info.GetFiles("*.png");
+                    foreach (FileInfo file in Files)
                     {
-                        FileDict[Keys[i]].Add(file);
+                        List<string> SeqExtracted = file.Name.Split('_').ToList();
+                        SeqExtracted.RemoveAt(SeqExtracted.Count - 1);
+                        SeqExtracted.RemoveAt(SeqExtracted.Count - 1);
+                        string ExtractSeq = string.Join(" ", SeqExtracted);
+
+                        if (ExtractSeq == SeqSelector.Text)
+                        {
+                            FileDict[Keys[i]].Add(file);
+                        }
                     }
                 }
             }
@@ -419,6 +449,42 @@ namespace ACR_Phantom_GUI
             }
             catch (Exception ex) { MessageBox.Show(ex.Message); }
         }
-    }
+
+        private void Updater_DoWork(object sender, System.ComponentModel.DoWorkEventArgs e)
+        {
+            StartButton.Enabled = false;    
+            var processInfo = new ProcessStartInfo("docker", "pull doctorspacemanphd/dockeracrphantom:latest");
+            processInfo.CreateNoWindow = true;
+            processInfo.UseShellExecute = false;
+            processInfo.RedirectStandardOutput = true;
+            processInfo.RedirectStandardError = true;
+            int exitCode;
+            using (var process = new Process())
+            {
+                process.StartInfo = processInfo;
+                process.OutputDataReceived += new DataReceivedEventHandler(OutputUpdaterHandler);
+                process.ErrorDataReceived += new DataReceivedEventHandler(OutputUpdaterHandler);
+
+                process.Start();
+                process.BeginOutputReadLine();
+                process.BeginErrorReadLine();
+                process.WaitForExit(1200000);
+                if (!process.HasExited)
+                {
+                    process.Kill();
+                }
+
+                exitCode = process.ExitCode;
+                process.Close();
+            }
+        }
+
+        private void Updater_RunWorkerCompleted(object sender, System.ComponentModel.RunWorkerCompletedEventArgs e)
+        {
+            StartButton.Enabled = true;
+            LogBoxField.AppendText(UpdaterString);
+        }
+
+        }
 }
 
