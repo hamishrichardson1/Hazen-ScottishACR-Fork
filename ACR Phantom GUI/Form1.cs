@@ -18,12 +18,22 @@ using System.IO;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using FellowOakDicom;
+using FellowOakDicom.Imaging;
+using static System.Net.Mime.MediaTypeNames;
+using FellowOakDicom.Imaging.Codec;
+using FellowOakDicom.Network;
+using System.Text.RegularExpressions;
+using System.Runtime.CompilerServices;
+using static System.Net.WebRequestMethods;
 
 namespace ACR_Phantom_GUI
 {
     public partial class Form1 : Form
     {
+
         private BackgroundWorker Worker;
+        private string Arguments = "";
+        private Dictionary<string, List<FileInfo>> FileDict;
         public Form1()
         {
             try
@@ -52,7 +62,7 @@ namespace ACR_Phantom_GUI
                     foreach (string DCMPath in filePaths)
                     {
                         bool isDicom = DicomFile.HasValidHeader(DCMPath);
-                        if (isDicom==true)
+                        if (isDicom == true)
                         {
                             DICOMObject DCM = DICOMObject.Read(DCMPath);
                             string Sequence = DCM.FindFirst(TagHelper.SeriesDescription).DData.ToString();
@@ -68,17 +78,42 @@ namespace ACR_Phantom_GUI
 
         private void SeqSelector_SelectedIndexChanged(object sender, EventArgs e)
         {
+            UpdateResultList();
         }
 
         private void StartButton_Click(object sender, EventArgs e)
         {
             try
             {
+                LogBoxField.AppendText("Starting Analysis" + Environment.NewLine);
+                if (RunAllCheck.Checked == true)
+                {
+                    Arguments = "-RunAll";
+                }
+                else
+                {
+                    if (RunUniformity.Checked == true) { Arguments += "-RunUniformity "; }
+                    if (RunSlicePosition.Checked == true) { Arguments += "-RunSlicePos "; }
+                    if (RunGhosting.Checked == true) { Arguments += "-RunGhosting "; }
+                    if (RunGeometricAccuracy.Checked == true) { Arguments += "-RunGeoAcc "; }
+                    if (RunSNRCheck.Checked == true) { Arguments += "-RunSNR "; }
+                    if (RunSliceThickness.Checked == true) { Arguments += "-RunSliceThickness "; }
+                    if (RunSpatialRes.Checked == true) { Arguments += "-RunSpatialRes "; }
+                }
+                ResultComboBox.Enabled = false;
+                ResultComboBox.Items.Clear();
+                ViewResult.Enabled = false;
+                Results.Clear();
                 StartButton.Enabled = false;
                 SeqSelector.Enabled = false;
+                SeqSelector.Enabled = false;
+                DCMPath.Enabled = false;
+                OutputPath.Enabled = false;
                 Worker.RunWorkerAsync();
+
+
             }
-            catch (Exception ex){MessageBox.Show(ex.Message);}
+            catch (Exception ex) { MessageBox.Show(ex.Message); }
         }
 
         private void Worker_DoWork(object sender, System.ComponentModel.DoWorkEventArgs e)
@@ -89,11 +124,11 @@ namespace ACR_Phantom_GUI
                 string DCMFolder = null;
                 DCMPath.Invoke(new MethodInvoker(delegate { DCMFolder = DCMPath.Text; }));
                 string OutputFolder = null;
-                OuputPath.Invoke(new MethodInvoker(delegate { OutputFolder = OuputPath.Text; }));
+                OutputPath.Invoke(new MethodInvoker(delegate { OutputFolder = OutputPath.Text; }));
                 string Sequence = null;
                 SeqSelector.Invoke(new MethodInvoker(delegate { Sequence = SeqSelector.Text; }));
 
-                var processInfo = new ProcessStartInfo("docker", $"run -v " + DCMFolder + ":/app/DataTransfer -v" + OutputFolder + ":/app/OutputFolder -v C:/Users/John/Desktop/DockerLocalTest/ToleranceTable:/app/ToleranceTable docker-acr-phantom -seq \"" + Sequence + "\" -RunAll");
+                var processInfo = new ProcessStartInfo("docker", $"run -v " + DCMFolder + ":/app/DataTransfer -v" + OutputFolder + ":/app/OutputFolder -v C:/Users/John/Desktop/DockerLocalTest/ToleranceTable:/app/ToleranceTable docker-acr-phantom -seq \"" + Sequence + "\" " + Arguments);
                 processInfo.CreateNoWindow = true;
                 processInfo.UseShellExecute = false;
                 processInfo.RedirectStandardOutput = true;
@@ -143,8 +178,6 @@ namespace ACR_Phantom_GUI
                 }
             }
             catch (Exception ex) { MessageBox.Show(ex.Message); }
-
-
         }
         void OutputHandler(object sendingProcess, DataReceivedEventArgs outLine)
         {
@@ -153,63 +186,239 @@ namespace ACR_Phantom_GUI
                 bool OutputAll = false;
                 string Line = "";
                 LogBoxField.Invoke(new MethodInvoker(delegate { OutputAll = ShowAllOutput.Checked; }));
-                LogBoxField.Invoke(new MethodInvoker(delegate { Line = outLine.Data + Environment.NewLine;}));
+                LogBoxField.Invoke(new MethodInvoker(delegate { Line = outLine.Data + Environment.NewLine; }));
 
-                if (OutputAll == true || OutputAll == false)
+                if (OutputAll == true)
                 {
                     LogBoxField.Invoke(new MethodInvoker(delegate { LogBoxField.Text += Line; LogBoxField.SelectionStart = LogBoxField.Text.Length; LogBoxField.ScrollToCaret(); }));
                 }
+                else
+                {
+                    //Report Progress
+                    if (Line.Contains("Progress"))
+                    {
+                        LogBoxField.Invoke(new MethodInvoker(delegate { LogBoxField.AppendText("Tests Completed: " + Line.Split(' ')[1]); LogBoxField.SelectionStart = LogBoxField.Text.Length; LogBoxField.ScrollToCaret(); }));
+                    }
+                    else if (Line.Contains("Running"))
+                    {
+                        LogBoxField.Invoke(new MethodInvoker(delegate { LogBoxField.AppendText(Line); LogBoxField.SelectionStart = LogBoxField.Text.Length; LogBoxField.ScrollToCaret(); }));
+                    }
+                    else //Check for warnings/errros probably want to improve this at a later date.
+                    {
+                        if (Line.Split(' ').Length > 3)
+                        {
+                            string PossibleWarningOrError = Line.Split(' ')[2];
+
+                            if (PossibleWarningOrError == "W" || PossibleWarningOrError == "E")
+                            {
+                                LogBoxField.Invoke(new MethodInvoker(delegate { LogBoxField.AppendText(Line); LogBoxField.SelectionStart = LogBoxField.Text.Length; LogBoxField.ScrollToCaret(); }));
+                            }
+                        }
+                    }
+                }
             }
-            catch(Exception ex) { MessageBox.Show(ex.Message);}
+            catch (Exception ex) { MessageBox.Show(ex.Message); }
         }
-        
+
         private void Worker_ProgressChanged(object sender, System.ComponentModel.ProgressChangedEventArgs e)
         {
             try
             {
 
             }
-            catch(Exception ex) { MessageBox.Show(ex.Message);}
+            catch (Exception ex) { MessageBox.Show(ex.Message); }
         }
         private void Worker_RunWorkerCompleted(object sender, System.ComponentModel.RunWorkerCompletedEventArgs e)
         {
             try
             {
+                //Fill out the results table
+                DirectoryInfo dinfo = new DirectoryInfo(OutputPath.Text);
+                FileInfo[] Files = dinfo.GetFiles("*.txt");
+                List<FileInfo> FilteredFiles = new List<FileInfo>();
+                foreach (FileInfo file in Files)
+                {
+                    if (file.Name.Contains(SeqSelector.Text))
+                    {
+                        FilteredFiles.Add(file);
+                    }
+                }
+                var directory = new DirectoryInfo(OutputPath.Text);
+                var MostRecentFile = (from f in FilteredFiles orderby f.LastWriteTime descending select f).First();
+                List<string> lines = System.IO.File.ReadAllLines(MostRecentFile.FullName).ToList();
+
+                foreach (string line in lines)
+                {
+                    Results.AppendText(line + Environment.NewLine);
+                }
+                HighlightText(Results, "Pass", Color.Green);
+                HighlightText(Results, "Fail", Color.Red);
+                HighlightText(Results, "No Tolerance Set", Color.Orange);
+                HighlightText(Results, "Not Run", Color.Blue);
+
+
                 LogBoxField.Text += "Finished" + Environment.NewLine;
                 StartButton.Enabled = true;
                 SeqSelector.Enabled = true;
                 LogBoxField.SelectionStart = LogBoxField.Text.Length;
                 LogBoxField.ScrollToCaret();
+
+                Arguments = "";
+
+                ResultComboBox.Enabled = true;
+                ViewResult.Enabled = true;
+                SeqSelector.Enabled = true;
+                DCMPath.Enabled = true;
+                OutputPath.Enabled = true;
+
+                UpdateResultList();
             }
-            catch(Exception ex) { MessageBox.Show(ex.Message);}
+            catch (Exception ex) { MessageBox.Show(ex.Message); }
         }
 
-        private void DCMPath_TextChanged(object sender, EventArgs e)
+        private void UpdateResultList()
         {
-            //TODO
+
+            FileDict = new Dictionary<string, List<FileInfo>>();
+
+            List<string> PathsExtension = new List<string>();
+            List<string> Keys = new List<string>();
+
+            PathsExtension.Add("ACRGeometricAccuracy");
+            Keys.Add("Geometric Acccuracy");
+
+            PathsExtension.Add("ACRGhosting");
+            Keys.Add("Ghosting");
+
+            PathsExtension.Add("ACRSlicePosition");
+            Keys.Add("Slice Position");
+
+            PathsExtension.Add("ACRSliceThickness");
+            Keys.Add("Slice Thickness");
+
+            PathsExtension.Add("ACRSNR");
+            Keys.Add("SNR");
+
+            PathsExtension.Add("ACRSpatialResolution");
+            Keys.Add("Spatial Resolution");
+
+            PathsExtension.Add("ACRUniformity");
+            Keys.Add("Uniformity");
+
+            for (int i = 0; i < Keys.Count; i++)
+            {
+                ResultComboBox.Items.Add(Keys[i]);
+                FileDict.Add(Keys[i], new List<FileInfo>());
+                string[] paths = { OutputPath.Text, PathsExtension[i] };
+                string fullpath = Path.Combine(paths);
+                DirectoryInfo info = new DirectoryInfo(fullpath);
+                FileInfo[]  Files = info.GetFiles("*.png");
+                foreach (FileInfo file in Files)
+                {
+                    if (file.Name.Contains(SeqSelector.Text.Replace(" ", "_")))
+                    {
+                        FileDict[Keys[i]].Add(file);
+                    }
+                }
+            }
+            ResultComboBox.SelectedIndex = 0;
+        }
+
+        public static void HighlightText(RichTextBox myRtb, string word, Color color)
+        {
+            if (word == string.Empty)
+                return;
+            var reg = new Regex(@"\b" + word + @"(\b|s\b)", RegexOptions.IgnoreCase);
+
+            foreach (Match match in reg.Matches(myRtb.Text))
+            {
+                myRtb.Select(match.Index, match.Length);
+                myRtb.SelectionColor = color;
+            }
+
+            myRtb.SelectionLength = 0;
+            myRtb.SelectionColor = Color.Black;
         }
 
         private void DCMPath_click(object sender, MouseEventArgs e)
         {
-            using (var fbd = new FolderBrowserDialog())
+            try
             {
-                DialogResult result = fbd.ShowDialog();
-                DCMPath.Text = fbd.SelectedPath;
-                if (result == DialogResult.OK)
+                using (var fbd = new FolderBrowserDialog())
                 {
-                    UpdateSequences();
+                    DialogResult result = fbd.ShowDialog();
+                    if (result == DialogResult.OK)
+                    {
+                        UpdateSequences();
+                        DCMPath.Text = fbd.SelectedPath;
+                    }
                 }
             }
-
+            catch (Exception ex) { MessageBox.Show(ex.Message); }
         }
 
         private void OutputPath_click(object sender, MouseEventArgs e)
         {
-            using (var fbd = new FolderBrowserDialog())
+            try
             {
-                DialogResult result = fbd.ShowDialog();
-                OuputPath.Text = fbd.SelectedPath;
+                using (var fbd = new FolderBrowserDialog())
+                {
+                    DialogResult result = fbd.ShowDialog();
+                    if (result == DialogResult.OK)
+                    {
+                        OutputPath.Text = fbd.SelectedPath;
+                    }
+                }
             }
+            catch (Exception ex) { MessageBox.Show(ex.Message); }
+        }
+
+        private void RunAllCheck_CheckedChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                if (RunAllCheck.Checked)
+                {
+                    RunUniformity.Enabled = false;
+                    RunSlicePosition.Enabled = false;
+                    RunGhosting.Enabled = false;
+                    RunGeometricAccuracy.Enabled = false;
+                    RunSNRCheck.Enabled = false;
+                    RunSliceThickness.Enabled = false;
+                    RunSpatialRes.Enabled = false;
+                }
+                else
+                {
+                    RunUniformity.Enabled = true;
+                    RunSlicePosition.Enabled = true;
+                    RunGhosting.Enabled = true;
+                    RunGeometricAccuracy.Enabled = true;
+                    RunSNRCheck.Enabled = true;
+                    RunSliceThickness.Enabled = true;
+                    RunSpatialRes.Enabled = true;
+                }
+            }
+            catch (Exception ex) { MessageBox.Show(ex.Message); }
+
+        }
+
+        private void ViewResult_Click(object sender, EventArgs e)
+        {try
+            {
+                List<FileInfo> Files = FileDict[ResultComboBox.Text];
+
+                if(Files.Count == 0)
+                    {
+                        throw new Exception("No result image found for " + ResultComboBox.Text);
+                    }
+
+                foreach (FileInfo file in Files)
+                {
+                    System.Diagnostics.Process.Start(file.FullName);
+                }
+            }
+            catch (Exception ex) { MessageBox.Show(ex.Message); }
         }
     }
 }
+

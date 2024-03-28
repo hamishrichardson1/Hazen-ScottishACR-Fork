@@ -25,8 +25,8 @@ parser.add_argument('-RunGeoAcc',action="store_true",default=False)
 parser.add_argument('-RunSpatialRes',action="store_true",default=False)
 parser.add_argument('-RunUniformity',action="store_true",default=False)
 parser.add_argument('-RunGhosting',action="store_true",default=False)
-parser.add_argument('-SlicePos',action="store_true",default=False)
-parser.add_argument('-SliceThickness',action="store_true",default=False)
+parser.add_argument('-RunSlicePos',action="store_true",default=False)
+parser.add_argument('-RunSliceThickness',action="store_true",default=False)
 args = parser.parse_args()
 Seq = args.seq
 
@@ -34,7 +34,7 @@ if args.RunAll == True:
     TotalTests = 7
 else:
     TotalTests=0
-    if args.runSNR ==True:
+    if args.RunSNR ==True:
         TotalTests+=1
     if args.RunGeoAcc ==True:
         TotalTests+=1
@@ -44,9 +44,9 @@ else:
         TotalTests+=1
     if args.RunGhosting ==True:
         TotalTests+=1
-    if args.SlicePos ==True:
+    if args.RunSlicePos ==True:
         TotalTests+=1
-    if args.SliceThickness ==True:
+    if args.RunSliceThickness ==True:
         TotalTests+=1
         
 #load in the DICOM
@@ -97,99 +97,132 @@ def GetPassResult(Value,TestName):
     if ToleranceTable[TestName]==[None,None]:
         return "Result: No Tolerance Set"
     Pass=True
+    Appendix = []
     if ToleranceTable[TestName][1]!=None:
         if Value > ToleranceTable[TestName][1]:
             Pass=False
+        Appendix.append("<"+str(ToleranceTable[TestName][1]))
     if ToleranceTable[TestName][0]!=None:
         if Value < ToleranceTable[TestName][0]:
             Pass=False
+        Appendix.append(">"+str(ToleranceTable[TestName][0]))
+    AppendixTxt=""
+    if len(Appendix) == 1 :
+        AppendixTxt = Appendix[0]
+    if len(Appendix) == 2 :
+        AppendixTxt = Appendix[1] +" and " + Appendix[0]
+
     if Pass ==True:
-        return ("Result: Pass")
+        return ("Result: Pass      Tolerance: " + AppendixTxt)
     else:
-        return ("Result: Fail") 
+        return ("Result: Fail      Tolerance: " + AppendixTxt) 
     
 TestCounter=0
+ReportFile.write("\nSNR Module\n")
 if args.RunAll==True or args.RunSNR == True:
+    print("Running SNR")
     acr_snr_task = ACRSNR(input_data=Data, report_dir="OutputFolder",report=True,MediumACRPhantom=True)
     snr = acr_snr_task.run()
     print("SNR :" +str(snr["measurement"]["snr by smoothing"]["measured"]))
-    ReportFile.write("\nSNR Module\n")
-    ReportFile.write("\tSNR: " +str(snr["measurement"]["snr by smoothing"]["measured"]) +"\t" + GetPassResult(snr["measurement"]["snr by smoothing"]["measured"],"SNR") +"\n")
+    
+    ReportFile.write( '\tSNR: %-12s%-12s\n' % (str(snr["measurement"]["snr by smoothing"]["measured"]), GetPassResult(snr["measurement"]["snr by smoothing"]["measured"],"SNR")))
     TestCounter+=1
     print("Progress " +str(TestCounter) +"/" +str(TotalTests))
+else:
+    ReportFile.write("\tNot Run\n")
 
+ReportFile.write("\nGeometric Accuracy Module\n")
 if args.RunAll==True or args.RunGeoAcc == True:
+    print("Running Geometric Accuracy")
     acr_geometric_accuracy_task = ACRGeometricAccuracy(input_data=Data,report_dir="OutputFolder",MediumACRPhantom=True,report=True)
     GeoDist = acr_geometric_accuracy_task.run()
     print("Slice 1 Hor Dist: "+str(GeoDist["measurement"][GeoDist["file"][0]]["Horizontal distance"]) + "   "+ " Vert Dist: "+str(GeoDist["measurement"][GeoDist["file"][0]]["Vertical distance"]))
     print("Slice 5 Hor Dist:"+str(GeoDist["measurement"][GeoDist["file"][1]]["Horizontal distance"]) + "   "+ " Vert Dist:"+str(GeoDist["measurement"][GeoDist["file"][1]]["Vertical distance"])+ "   "+ " Diag SW Dist:"+str(GeoDist["measurement"][GeoDist["file"][1]]["Diagonal distance SW"])+ "   "+ "Diag SE Dist:"+str(GeoDist["measurement"][GeoDist["file"][1]]["Diagonal distance SE"]))
     
-    ReportFile.write("\nGeometric Accuracy Module\n")
+    
     ReportFile.write("\tSlice 1:\n")
-    ReportFile.write("\t\tHor Dist (mm): "+str(GeoDist["measurement"][GeoDist["file"][0]]["Horizontal distance"])+"\t" + GetPassResult(GeoDist["measurement"][GeoDist["file"][0]]["Horizontal distance"],"Geometric Acuracy") +"\n")
-    ReportFile.write("\t\tVert Dist (mm): "+str(GeoDist["measurement"][GeoDist["file"][0]]["Vertical distance"])+"\t" + GetPassResult(GeoDist["measurement"][GeoDist["file"][0]]["Vertical distance"],"Geometric Acuracy")+"\n")
+    ReportFile.write( '\t\tHor Dist (mm):             %-12s%-12s\n' % (str(GeoDist["measurement"][GeoDist["file"][0]]["Horizontal distance"]),GetPassResult(GeoDist["measurement"][GeoDist["file"][0]]["Horizontal distance"],"Geometric Acuracy") ))
+    ReportFile.write( '\t\tVert Dist (mm):            %-12s%-12s\n' % (str(GeoDist["measurement"][GeoDist["file"][0]]["Vertical distance"]),GetPassResult(GeoDist["measurement"][GeoDist["file"][0]]["Horizontal distance"],"Geometric Acuracy") ))
 
     ReportFile.write("\tSlice 5:\n")
-    ReportFile.write("\t\tHor Dist (mm): "+str(GeoDist["measurement"][GeoDist["file"][1]]["Horizontal distance"]) +"\t" + GetPassResult(GeoDist["measurement"][GeoDist["file"][1]]["Horizontal distance"],"Geometric Acuracy")+"\n")
-    ReportFile.write("\t\tVert Dist (mm): "+str(GeoDist["measurement"][GeoDist["file"][1]]["Vertical distance"])+"\t" + GetPassResult(GeoDist["measurement"][GeoDist["file"][1]]["Vertical distance"],"Geometric Acuracy")+"\n")
-    ReportFile.write("\t\tDiagonal distance SW (mm): "+str(GeoDist["measurement"][GeoDist["file"][1]]["Diagonal distance SW"])+"\t" + GetPassResult(GeoDist["measurement"][GeoDist["file"][1]]["Diagonal distance SW"],"Geometric Acuracy")+"\n")
-    ReportFile.write("\t\tDiagonal distance SE (mm): "+str(GeoDist["measurement"][GeoDist["file"][1]]["Diagonal distance SE"])+"\t" + GetPassResult(GeoDist["measurement"][GeoDist["file"][1]]["Diagonal distance SE"],"Geometric Acuracy")+"\n")
-
+    ReportFile.write( '\t\tHor Dist (mm):             %-12s%-12s\n' % (str(GeoDist["measurement"][GeoDist["file"][1]]["Horizontal distance"]),GetPassResult(GeoDist["measurement"][GeoDist["file"][1]]["Horizontal distance"],"Geometric Acuracy") ))
+    ReportFile.write( '\t\tVert Dist (mm):            %-12s%-12s\n' % (str(GeoDist["measurement"][GeoDist["file"][1]]["Vertical distance"]),GetPassResult(GeoDist["measurement"][GeoDist["file"][1]]["Horizontal distance"],"Geometric Acuracy") ))
+    ReportFile.write( '\t\tDiagonal distance SW (mm): %-12s%-12s\n' % (str(GeoDist["measurement"][GeoDist["file"][1]]["Diagonal distance SW"]),GetPassResult(GeoDist["measurement"][GeoDist["file"][1]]["Diagonal distance SW"],"Geometric Acuracy") ))
+    ReportFile.write( '\t\tDiagonal distance SE (mm): %-12s%-12s\n' % (str(GeoDist["measurement"][GeoDist["file"][1]]["Diagonal distance SE"]),GetPassResult(GeoDist["measurement"][GeoDist["file"][1]]["Diagonal distance SE"],"Geometric Acuracy") ))
     TestCounter+=1
     print("Progress " +str(TestCounter) +"/" +str(TotalTests))
+else:
+    ReportFile.write("\tNot Run\n")
 
+ReportFile.write("\nSpatial Resoloution Module\n")
 if args.RunAll==True or args.RunSpatialRes == True:
+    print("Running Spatial Resoloution")
     acr_spatial_resolution_task = ACRSpatialResolution(input_data=Data,report_dir="OutputFolder",report=True,MediumACRPhantom=True,UseDotMatrix=True)
     Res = acr_spatial_resolution_task.run()
-    ReportFile.write("\nSpatial Resoloution Module\n")
-    ReportFile.write("\t1.1mm Holes Score: "+str(Res["measurement"]["1.1mm holes"])+"\t" + GetPassResult(Res["measurement"]["1.1mm holes"],"Spatial Resolution")+"\n")
-    ReportFile.write("\t1.0mm Holes Score: "+str(Res["measurement"]["1.0mm holes"])+"\t" + GetPassResult(Res["measurement"]["1.0mm holes"],"Spatial Resolution")+"\n")
-    ReportFile.write("\t0.9mm Holes Score: "+str(Res["measurement"]["0.9mm holes"])+"\t" + GetPassResult(Res["measurement"]["0.9mm holes"],"Spatial Resolution")+"\n")
-    ReportFile.write("\t0.8mm Holes Score: "+str(Res["measurement"]["0.8mm holes"])+"\t" + GetPassResult(Res["measurement"]["0.8mm holes"],"Spatial Resolution")+"\n")
 
+    ReportFile.write( '\t1.1mm Holes Score: %-12s%-12s\n' % (str(Res["measurement"]["1.1mm holes"]),GetPassResult(Res["measurement"]["1.1mm holes"],"Spatial Resolution") ))
+    ReportFile.write( '\t1.0mm Holes Score: %-12s%-12s\n' % (str(Res["measurement"]["1.0mm holes"]),GetPassResult(Res["measurement"]["1.0mm holes"],"Spatial Resolution") ))
+    ReportFile.write( '\t0.9mm Holes Score: %-12s%-12s\n' % (str(Res["measurement"]["0.9mm holes"]),GetPassResult(Res["measurement"]["0.9mm holes"],"Spatial Resolution") ))
+    ReportFile.write( '\t0.8mm Holes Score: %-12s%-12s\n' % (str(Res["measurement"]["0.8mm holes"]),GetPassResult(Res["measurement"]["0.8mm holes"],"Spatial Resolution") ))
     TestCounter+=1
     print("Progress " +str(TestCounter) +"/" +str(TotalTests))
+else:
+    ReportFile.write("\tNot Run\n")
 
+ReportFile.write("\nUniformity Module\n")
 if args.RunAll==True or args.RunUniformity == True:
+    print("Running Uniformity")
     acr_uniformity_task = ACRUniformity(input_data=Data,report_dir="OutputFolder",MediumACRPhantom=True,report=True)
     UniformityResult=acr_uniformity_task.run()
     print(" Uniformity :" + str(UniformityResult["measurement"]["integral uniformity %"]))
-    ReportFile.write("\nUniformity Module\n")
-    ReportFile.write("\tUniformity (%): "+str(UniformityResult["measurement"]["integral uniformity %"])+"%"+"\t" + GetPassResult(UniformityResult["measurement"]["integral uniformity %"],"Uniformity")+"\n")
-
+    ReportFile.write( '\tUniformity:  %-12s%-12s\n' % (str(UniformityResult["measurement"]["integral uniformity %"])+"%",GetPassResult(UniformityResult["measurement"]["integral uniformity %"],"Uniformity") ))
     TestCounter+=1
     print("Progress " +str(TestCounter) +"/" +str(TotalTests))
+else:
+    ReportFile.write("\tNot Run\n")
 
+ReportFile.write("\nGhosting Module\n")
 if args.RunAll==True or args.RunGhosting == True:
+    print("Running Ghosting")
     acr_ghosting_task = ACRGhosting(input_data=Data,report_dir="OutputFolder",MediumACRPhantom=True,report=True)
     ghosting = acr_ghosting_task.run()
     print("Ghosting :" + str(ghosting["measurement"]["signal ghosting %"]))
-    ReportFile.write("\nGhosting Module\n")
-    ReportFile.write("\tGhosting (%): " + str(ghosting["measurement"]["signal ghosting %"])+"%" +"\t" + GetPassResult(ghosting["measurement"]["signal ghosting %"],"Ghosting") +"\n")
+
+    ReportFile.write( '\tGhosting:    %-12s%-12s\n' % (str(ghosting["measurement"]["signal ghosting %"])+"%",GetPassResult(ghosting["measurement"]["signal ghosting %"],"Ghosting") ))
 
     TestCounter+=1
     print("Progress " +str(TestCounter) +"/" +str(TotalTests))
+else:
+    ReportFile.write("\tNot Run\n")
 
-if args.RunAll==True or args.SlicePos == True:
+ReportFile.write("\nSlice Position Module\n")
+if args.RunAll==True or args.RunSlicePos == True:
+    print("Running Slice Position")
     acr_slice_position_task = ACRSlicePosition(input_data=Data,report_dir="OutputFolder",report=True,MediumACRPhantom=True)
     SlicePos = acr_slice_position_task.run()
     print("Slice Pos difference " + SlicePos['file'][0] + " :" + str(SlicePos['measurement'][SlicePos['file'][0]]['length difference']) + "mm    " + SlicePos['file'][1] + " :" + str(SlicePos['measurement'][SlicePos['file'][1]]['length difference'])+"mm")
-    ReportFile.write("\nSlice Position Module\n")
-    ReportFile.write("\tSlice 1 Position Error (mm): " + str(SlicePos['measurement'][SlicePos['file'][0]]['length difference'])+"\t" + GetPassResult(SlicePos['measurement'][SlicePos['file'][0]]['length difference'],"Slice Position") +"\n")
-    ReportFile.write("\tSlice 11 Position Error (mm): " + str(SlicePos['measurement'][SlicePos['file'][1]]['length difference'])+"\t" + GetPassResult(SlicePos['measurement'][SlicePos['file'][1]]['length difference'],"Slice Position") +"\n")
+
+    ReportFile.write( '\tSlice 1 Position Error (mm):  %-12s%-12s\n' % (str(SlicePos['measurement'][SlicePos['file'][0]]['length difference']),GetPassResult(SlicePos['measurement'][SlicePos['file'][0]]['length difference'],"Slice Position") ))
+    ReportFile.write( '\tSlice 11 Position Error (mm): %-12s%-12s\n' % (str(SlicePos['measurement'][SlicePos['file'][1]]['length difference']),GetPassResult(SlicePos['measurement'][SlicePos['file'][1]]['length difference'],"Slice Position") ))
 
     TestCounter+=1
     print("Progress " +str(TestCounter) +"/" +str(TotalTests))
+else:
+    ReportFile.write("\tNot Run\n")
 
-if args.RunAll==True or args.SliceThickness == True:
+ReportFile.write("\nSlice Thickness Module\n")
+if args.RunAll==True or args.RunSliceThickness == True:
+    print("Running Slice Thickness")
     acr_slice_thickness_task = ACRSliceThickness(input_data=Data,report_dir="OutputFolder",report=True,MediumACRPhantom=True)
     SliceThick = acr_slice_thickness_task.run()
     print("Slice Width (mm): " + str(SliceThick['measurement']['slice width mm']))
-    ReportFile.write("\nSlice Thickness Module\n")
-    ReportFile.write("\tSlice Width (mm): " + str(SliceThick['measurement']['slice width mm'])+"\t" + GetPassResult(SliceThick['measurement']['slice width mm'],"Slice Thickness") +"\n")
+    #ReportFile.write("\tSlice Width (mm): " + str(SliceThick['measurement']['slice width mm'])+"\t" + GetPassResult(SliceThick['measurement']['slice width mm'],"Slice Thickness") +"\n")
+    ReportFile.write( '\tSlice Width (mm): %-12s%-12s\n' % (str(SliceThick['measurement']['slice width mm']),GetPassResult(SliceThick['measurement']['slice width mm'],"Slice Thickness") ))
 
     TestCounter+=1
     print("Progress " +str(TestCounter) +"/" +str(TotalTests))
+else:
+    ReportFile.write("\tNot Run\n")
 
 ReportFile.close()
 
