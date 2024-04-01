@@ -144,7 +144,7 @@ class ACRObject:
         h, theta, d = skimage.transform.hough_line(diff)
         _, angles, _ = skimage.transform.hough_line_peaks(h, theta, d)
 
-        angle = np.rad2deg(scipy.stats.mode(angles)[0][0])
+        angle = np.rad2deg(scipy.stats.mode(angles)[0])#[0])
         rot_angle = angle + 90 if angle < 0 else angle - 90
         return rot_angle
 

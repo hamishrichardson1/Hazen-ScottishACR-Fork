@@ -1,7 +1,7 @@
 import pydicom
 import sys
-sys.path.insert(0,"C:\\Users\\Johnt\\Documents\\GitHub\\Hazen-ScottishACR-Fork")
-sys.path.insert(0,"D:\\Hazen-ScottishACR-Fork")
+#sys.path.insert(0,"C:\\Users\\Johnt\\Documents\\GitHub\\Hazen-ScottishACR-Fork")
+sys.path.insert(0,"C:\\Users\\hamis\\gitest\\Hazen-ScottishACR-Fork")
 from hazenlib.utils import get_dicom_files
 from hazenlib.tasks.acr_geometric_accuracy import ACRGeometricAccuracy
 from hazenlib.ACRObject import ACRObject
@@ -21,7 +21,7 @@ slice5_vals = acr_geometric_accuracy_task.get_geometric_accuracy_slice5(dcm_5)
 print(slice1_vals,slice5_vals)
 '''
 
-files = get_dicom_files("ACR_MRI1_20240116_104902641")
+files = get_dicom_files("C:\\Users\\hamis\\gitest\\Hazen-ScottishACR-Fork\\MedACRTesting\\ACR_Phantom_Data")
 ACRDICOMSFiles = {}
 for file in files:
     data = pydicom.dcmread(file)
